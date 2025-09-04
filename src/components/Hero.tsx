@@ -17,7 +17,7 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-tight">
-          Vintage Style
+          Thrift Style
           <br />
           <span className="font-normal">Collection '24</span>
         </h1>
