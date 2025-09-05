@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { formatINR } from '../../lib/currency';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -186,7 +187,7 @@ const Dashboard = () => {
                     <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
-                        ${stats.totalRevenue.toFixed(2)}
+                        {formatINR(stats.totalRevenue)}
                       </div>
                     </dd>
                   </dl>
@@ -224,7 +225,7 @@ const Dashboard = () => {
                           </div>
                           <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                             <p>
-                              ${order.total}
+                              {formatINR(order.total)}
                             </p>
                           </div>
                         </div>

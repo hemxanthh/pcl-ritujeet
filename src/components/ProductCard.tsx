@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '../types/Product';
 import { useCart } from '../context/CartContext';
+import { formatINR } from '../lib/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -58,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.category}
         </p>
         <p className="text-lg font-medium text-neutral-900">
-          ${product.price}
+          {formatINR(product.price)}
         </p>
       </div>
     </div>

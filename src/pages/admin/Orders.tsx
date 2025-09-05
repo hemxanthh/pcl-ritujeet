@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
+import { formatINR } from '../../lib/currency';
 
 interface OrderItem {
   id: string;
@@ -170,7 +171,7 @@ export default function Orders() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">${'{'}o.total.toFixed(2){'}'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{formatINR(o.total)}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{new Date(o.created_at).toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-sm">
                     <details>
@@ -178,7 +179,7 @@ export default function Orders() {
                       <ul className="mt-2 text-gray-700 list-disc list-inside">
                         {o.order_items?.map((it) => (
                           <li key={it.id}>
-                            {it.products?.name || it.product_id} × {it.quantity} — ${'{'}(it.price * it.quantity).toFixed(2){'}'}
+                            {it.products?.name || it.product_id} × {it.quantity} — {formatINR(it.price * it.quantity)}
                           </li>
                         ))}
                       </ul>

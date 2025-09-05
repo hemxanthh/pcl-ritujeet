@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, X, ArrowLeft } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { formatINR } from '../lib/currency';
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, total } = useCart();
@@ -50,7 +51,7 @@ const Cart = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
             {items.map((item) => (
-              <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4 bg-neutral-50 p-6 rounded-lg">
+              <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4 bg-white border border-neutral-200 p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-24 h-24 bg-neutral-200 rounded overflow-hidden">
                   <img
                     src={item.image}
@@ -66,23 +67,29 @@ const Cart = () => {
                   <p className="text-sm text-neutral-500 uppercase tracking-wide">
                     {item.category} • Size: {item.selectedSize}
                   </p>
-                  <p className="text-lg font-medium text-neutral-900 mt-1">
-                    ${item.price}
-                  </p>
+                  <div className="mt-1">
+                    <p className="text-lg font-semibold text-neutral-900">
+                      {formatINR(item.price * item.quantity)}
+                    </p>
+                    <p className="text-xs text-neutral-500">{formatINR(item.price)} each</p>
+                  </div>
                 </div>
 
                 {/* Quantity Controls */}
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => updateQuantity(item.id, item.selectedSize || '', Math.max(0, item.quantity - 1))}
-                    className="w-8 h-8 border border-neutral-300 rounded flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                    className="w-9 h-9 border border-neutral-400 rounded flex items-center justify-center bg-white text-neutral-800 hover:bg-neutral-100 transition-colors shadow-sm"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
-                  <span className="text-lg font-medium w-8 text-center">{item.quantity}</span>
+                  <div className="flex items-center gap-2 border border-neutral-300 rounded px-2 py-1 bg-white shadow-sm">
+                    <span className="text-[11px] uppercase tracking-wide text-neutral-500">Qty</span>
+                    <span className="text-base font-medium w-6 text-center text-neutral-900">{item.quantity}</span>
+                  </div>
                   <button
                     onClick={() => updateQuantity(item.id, item.selectedSize || '', item.quantity + 1)}
-                    className="w-8 h-8 border border-neutral-300 rounded flex items-center justify-center hover:bg-neutral-100 transition-colors"
+                    className="w-9 h-9 border border-neutral-400 rounded flex items-center justify-center bg-white text-neutral-800 hover:bg-neutral-100 transition-colors shadow-sm"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -91,7 +98,7 @@ const Cart = () => {
                 {/* Remove */}
                 <button
                   onClick={() => removeItem(item.id, item.selectedSize || '')}
-                  className="p-2 text-neutral-400 hover:text-red-500 transition-colors"
+                  className="p-2 text-neutral-500 hover:text-red-600 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -100,31 +107,31 @@ const Cart = () => {
           </div>
 
           {/* Order Summary */}
-          <div className="bg-neutral-50 p-6 rounded-lg h-fit">
+          <div className="bg-white border border-neutral-200 p-6 rounded-lg h-fit shadow-sm">
             <h3 className="text-lg font-medium text-neutral-900 mb-4">
               Order Summary
             </h3>
             
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-neutral-600">Subtotal</span>
-                <span className="font-medium">${total.toFixed(2)}</span>
+                <span className="text-neutral-700">Subtotal</span>
+                <span className="font-semibold text-neutral-900">{formatINR(total)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-600">Shipping</span>
-                <span className="font-medium">Free</span>
+                <span className="text-neutral-700">Shipping</span>
+                <span className="font-semibold text-neutral-900">Free</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-600">Tax</span>
-                <span className="font-medium">${(total * 0.08).toFixed(2)}</span>
+                <span className="text-neutral-700">GST (approx.)</span>
+                <span className="font-semibold text-neutral-900">{formatINR(total * 0.18)}</span>
               </div>
-              <div className="border-t border-neutral-200 pt-3 flex justify-between text-lg font-medium">
+              <div className="border-t border-neutral-300 pt-3 flex justify-between text-lg font-bold text-neutral-900">
                 <span>Total</span>
-                <span>${(total * 1.08).toFixed(2)}</span>
+                <span>{formatINR(total * 1.18)}</span>
               </div>
             </div>
 
-            <button className="w-full mt-6 py-4 px-6 bg-neutral-900 text-white text-sm font-medium tracking-wide hover:bg-neutral-800 transition-colors">
+            <button className="w-full mt-6 py-4 px-6 bg-neutral-900 text-white text-sm font-medium tracking-wide hover:bg-neutral-800 transition-colors shadow-md">
               PROCEED TO CHECKOUT
             </button>
           </div>

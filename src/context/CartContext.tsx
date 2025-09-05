@@ -30,8 +30,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { product, quantity } = action.payload;
+      const normalizedSize = product.selectedSize ?? '';
       const existingItemIndex = state.items.findIndex(
-        item => item.id === product.id && item.selectedSize === product.selectedSize
+        item => item.id === product.id && (item.selectedSize ?? '') === normalizedSize
       );
 
       let newItems;
@@ -42,7 +43,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
             : item
         );
       } else {
-        newItems = [...state.items, { ...product, quantity }];
+        newItems = [...state.items, { ...product, selectedSize: normalizedSize, quantity }];
       }
 
       return {
@@ -53,8 +54,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
 
     case 'REMOVE_ITEM': {
+      const targetSize = action.payload.size ?? '';
       const newItems = state.items.filter(
-        item => !(item.id === action.payload.id && item.selectedSize === action.payload.size)
+        item => !(item.id === action.payload.id && (item.selectedSize ?? '') === targetSize)
       );
       return {
         ...state,
@@ -69,8 +71,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         return cartReducer(state, { type: 'REMOVE_ITEM', payload: { id, size } });
       }
 
+      const normalizedSize = size ?? '';
       const newItems = state.items.map(item =>
-        item.id === id && item.selectedSize === size
+        item.id === id && (item.selectedSize ?? '') === normalizedSize
           ? { ...item, quantity }
           : item
       );

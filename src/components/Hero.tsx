@@ -1,42 +1,82 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url(https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop)'
-        }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-      </div>
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-retro">
 
-      {/* Content */}
-      <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-tight">
-          Thrift Style
-          <br />
-          <span className="font-normal">Collection '24</span>
-        </h1>
-        <p className="text-lg sm:text-xl font-light mb-8 max-w-2xl mx-auto leading-relaxed">
-          Discover unique, pre-loved fashion pieces that tell a story. Sustainable style that doesn't compromise on quality or aesthetics.
-        </p>
-        <Link
-          to="/products"
-          className="inline-flex items-center px-8 py-4 bg-white text-neutral-900 font-medium text-sm tracking-wide hover:bg-neutral-100 transition-all duration-300 group"
-        >
-          SHOP NOW
-          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-        </Link>
-      </div>
+      {/* Center window */}
+      <div className="relative z-10 mx-4 sm:mx-8 w-full max-w-3xl">
+        <div className="retro-window">
+          {/* Title bar */}
+          <div className="flex items-center justify-between px-3 py-2 bg-[#1f6feb] text-white border-b border-black/20">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-3 h-3 bg-[#ff5f56] rounded-sm shadow-[1px_1px_0_0_#000]" />
+              <span className="inline-block w-3 h-3 bg-[#ffbd2e] rounded-sm shadow-[1px_1px_0_0_#000]" />
+              <span className="inline-block w-3 h-3 bg-[#27c93f] rounded-sm shadow-[1px_1px_0_0_#000]" />
+            </div>
+            <span className="text-xs tracking-wider">TTHRIFT</span>
+          </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-bounce"></div>
+          {/* Body */}
+          <div className="p-6 sm:p-10 bg-[#fffef8]">
+            <h1 className="text-center text-5xl sm:text-6xl font-extrabold tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-amber-400 to-purple-500 drop-shadow-[2px_2px_0_#000]">
+              TTHRIFT
+            </h1>
+            <p className="mt-6 mx-auto max-w-xl text-center text-sm sm:text-base text-neutral-800 bg-amber-200 px-4 py-3 rounded shadow-[2px_2px_0_0_#000] border border-black/20">
+              ELEVATE YOUR STYLE ON BUDGET
+            </p>
+            <p className="mt-5 text-center text-xs tracking-wider text-neutral-600">EXPLORE CATEGORIES</p>
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 place-items-center">
+              <Link
+                to="/products?category=men"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                MEN
+              </Link>
+              <Link
+                to="/products?category=women"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                WOMEN
+              </Link>
+              <Link
+                to="/products?category=clothing"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                CLOTHING
+              </Link>
+              <Link
+                to="/products?category=accessories"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                ACCESSORIES
+              </Link>
+              <Link
+                to="/products?category=shoes"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                SHOES
+              </Link>
+              <Link
+                to="/products?category=bags"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                BAGS
+              </Link>
+              <Link
+                to="/products?category=ethnic"
+                className="w-full text-center px-4 sm:px-5 py-2 bg-purple-500 text-white text-xs sm:text-sm font-semibold rounded shadow-[2px_2px_0_0_#000] border border-black/20 hover:translate-y-[1px] hover:translate-x-[1px] transition-transform"
+              >
+                ETHNIC
+              </Link>
+            </div>
+
+            <div className="mt-5 text-center text-[11px] text-neutral-500">
+              <span className="mx-2">Free Shipping over $75</span>
+              <span className="mx-2">New Drops Weekly</span>
+              <span className="mx-2">Sustainable Thrift</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -9,7 +9,6 @@
     @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
     font-family: 'Inter', sans-serif;
   }
-
   /* Improve native select/option contrast on all platforms */
   select,
   option {
@@ -31,5 +30,71 @@
   
   .btn-secondary {
     @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+}
+
+/* Retro theme helpers */
+@layer utilities {
+  /* Collage-like retro background: layered checkers, dots, gradients */
+  .bg-retro {
+    background-color: #fdfbf6; /* warm off-white */
+    background-image:
+      /* black/white checker corners */
+      radial-gradient(circle at 10% 10%, rgba(0,0,0,0.12) 0 8%, transparent 8.5%),
+      radial-gradient(circle at 90% 18%, rgba(0,0,0,0.12) 0 8%, transparent 8.5%),
+      /* dotted halftone top */
+      radial-gradient( rgba(0,0,0,0.18) 1px, transparent 1px ),
+      /* pink grid panel on right */
+      linear-gradient(#f6a9c6 0 0),
+      linear-gradient(#111 0 0),
+      /* subtle rainbow strip */
+      linear-gradient(90deg, rgba(255,183,77,0.35), rgba(147,197,253,0.35));
+    background-size:
+      140px 140px,
+      120px 120px,
+      6px 6px,
+      34% 100%,
+      34% 1px,
+      100% 16px;
+    background-position:
+      0% 0%,
+      100% 10%,
+      50% 0%,
+      100% 0%,
+      100% 0%,
+      0% 100%;
+    background-repeat:
+      no-repeat,
+      no-repeat,
+      repeat,
+      no-repeat,
+      no-repeat,
+      no-repeat;
+  }
+
+  /* Retro window card styling */
+  .retro-window {
+    @apply rounded-md border border-black/20 shadow-[6px_6px_0_0_rgba(0,0,0,0.9)] overflow-hidden bg-white;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0.04), transparent 24px);
+    background-size: 100% 100%;
+  }
+
+  /* Marquee */
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee {
+    @apply overflow-hidden whitespace-nowrap;
+  }
+  .marquee-track {
+    display: inline-block;
+    animation: marquee 18s linear infinite;
+  }
+
+  /* Sticker helpers */
+  .sticker {
+    @apply select-none pointer-events-none drop-shadow-[2px_2px_0_rgba(0,0,0,0.6)];
   }
 }

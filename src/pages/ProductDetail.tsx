@@ -4,6 +4,7 @@ import { Heart, ShoppingBag, Share2, Truck, RotateCcw, Shield } from 'lucide-rea
 import { useCart } from '../context/CartContext';
 import { fetchProductById } from '../lib/supabaseProducts';
 import { supabase } from '../lib/supabase';
+import { formatINR } from '../lib/currency';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -94,7 +95,7 @@ const ProductDetail = () => {
                 {product.name}
               </h1>
               <p className="text-2xl font-medium text-neutral-900 mt-4">
-                ${product.price}
+                {formatINR(product.price)}
               </p>
             </div>
 
