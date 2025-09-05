@@ -1,4 +1,4 @@
-import React from 'react';
+//
 import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Twitter, Mail } from 'lucide-react';
 
@@ -15,18 +15,18 @@ const Footer = () => {
               Every piece tells a story.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-neutral-400 hover:text-white transition-colors">
+              <button type="button" aria-label="Instagram" className="text-neutral-400 hover:text-white transition-colors">
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-white transition-colors">
+              </button>
+              <button type="button" aria-label="Facebook" className="text-neutral-400 hover:text-white transition-colors">
                 <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-white transition-colors">
+              </button>
+              <button type="button" aria-label="Twitter" className="text-neutral-400 hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-neutral-400 hover:text-white transition-colors">
+              </button>
+              <button type="button" aria-label="Email" className="text-neutral-400 hover:text-white transition-colors">
                 <Mail className="h-5 w-5" />
-              </a>
+              </button>
             </div>
           </div>
 
@@ -48,9 +48,9 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/faq" className="text-neutral-400 hover:text-white transition-colors">FAQ</Link></li>
               <li><Link to="/contact" className="text-neutral-400 hover:text-white transition-colors">Contact</Link></li>
-              <li><a href="#" className="text-neutral-400 hover:text-white transition-colors">Size Guide</a></li>
-              <li><a href="#" className="text-neutral-400 hover:text-white transition-colors">Shipping</a></li>
-              <li><a href="#" className="text-neutral-400 hover:text-white transition-colors">Returns</a></li>
+              <li><button type="button" className="text-neutral-400 hover:text-white transition-colors">Size Guide</button></li>
+              <li><button type="button" className="text-neutral-400 hover:text-white transition-colors">Shipping</button></li>
+              <li><button type="button" className="text-neutral-400 hover:text-white transition-colors">Returns</button></li>
             </ul>
           </div>
 
@@ -75,15 +75,15 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-neutral-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-neutral-400 text-sm">
-            © 2024 Vintage. All rights reserved.
+            2024 Vintage. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-neutral-400 hover:text-white text-sm transition-colors">
+            <button type="button" className="text-neutral-400 hover:text-white text-sm transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="text-neutral-400 hover:text-white text-sm transition-colors">
+            </button>
+            <button type="button" className="text-neutral-400 hover:text-white text-sm transition-colors">
               Terms of Service
-            </a>
+            </button>
           </div>
         </div>
       </div>

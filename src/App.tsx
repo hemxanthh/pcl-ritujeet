@@ -20,6 +20,8 @@ import ProductForm from './pages/admin/ProductForm';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import Users from './pages/admin/Users';
+import Orders from './pages/admin/Orders';
 
 // Main App Component
 const AppContent = () => {
@@ -61,6 +63,8 @@ const AppContent = () => {
                       <Route path="products" element={<ProductManagement />} />
                       <Route path="products/new" element={<ProductForm />} />
                       <Route path="products/edit/:id" element={<ProductForm />} />
+                      <Route path="users" element={<Users />} />
+                      <Route path="orders" element={<Orders />} />
                       {/* Add more admin routes here */}
                       <Route path="*" element={<Navigate to="/admin" replace />} />
                     </Routes>

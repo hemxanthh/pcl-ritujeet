@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import ProductGrid from '../components/ProductGrid';
-import { allProducts } from '../data/products';
 import { Product } from '../types/Product';
+import { fetchProducts, fetchProductsByCategory } from '../lib/supabaseProducts';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 const Products = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'all';
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const categories = ['all', 'clothing', 'accessories', 'shoes', 'bags'];
+  const categories = ['all', 'clothing', 'accessories', 'shoes', 'bags', 'men', 'women', 'ethnic'];
 
-  const filteredProducts = allProducts.filter(product => 
-    selectedCategory === 'all' || product.category === selectedCategory
-  );
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data =
+          selectedCategory === 'all'
+            ? await fetchProducts()
+            : await fetchProductsByCategory(selectedCategory);
+        if (mounted) setProducts(data as any);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+
+    // Keep URL in sync when selectedCategory changes
+    const params = new URLSearchParams(searchParams.toString());
+    if (selectedCategory === 'all') params.delete('category');
+    else params.set('category', selectedCategory);
+    setSearchParams(params, { replace: true });
+
+    // Realtime refresh
+    const channel = supabase
+      .channel('products-page')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, load)
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [selectedCategory]);
+
+  const filteredProducts = useMemo(() => products, [products]);
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
@@ -38,10 +76,10 @@ const Products = () => {
                 All Products
               </h1>
               <p className="text-neutral-600 mt-2">
-                {sortedProducts.length} items available
+                {loading ? 'Loading...' : `${sortedProducts.length} items available`}
               </p>
             </div>
-            
+
             {/* Filters Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}

@@ -64,6 +64,19 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
+
+    // Realtime subscriptions to auto-refresh dashboard
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles' }, fetchDashboardData)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (isLoading) {
@@ -191,7 +204,7 @@ const Dashboard = () => {
               {recentOrders.length > 0 ? (
                 recentOrders.map((order) => (
                   <li key={order.id}>
-                    <Link to={`/admin/orders/${order.id}`} className="block hover:bg-gray-50">
+                    <Link to={`/admin/orders`} className="block hover:bg-gray-50">
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-indigo-600 truncate">
@@ -266,6 +279,22 @@ const Dashboard = () => {
                 <span className="absolute inset-0" aria-hidden="true" />
                 <p className="text-sm font-medium text-gray-900">Manage Users</p>
                 <p className="text-sm text-gray-500 truncate">View and manage user accounts</p>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+            >
+              <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="absolute inset-0" aria-hidden="true" />
+                <p className="text-sm font-medium text-gray-900">Manage Orders</p>
+                <p className="text-sm text-gray-500 truncate">Track and update order statuses</p>
               </div>
             </Link>
 

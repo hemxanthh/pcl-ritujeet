@@ -16,6 +16,7 @@ const ProductForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const isEditing = Boolean(id);
 
   useEffect(() => {
@@ -55,25 +56,56 @@ const ProductForm = () => {
     setLoading(true);
     setError(null);
 
-    const productData = {
-      ...product,
-      price: Number(product.price),
-    };
+    try {
+      let imageUrl = product.image || '';
 
-    let response;
-    if (isEditing) {
-      response = await supabase.from('products').update(productData).eq('id', id);
-    } else {
-      response = await supabase.from('products').insert(productData);
-    }
+      // If a local image file is selected, upload it to Supabase Storage
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const filePath = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
 
-    setLoading(false);
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, imageFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-    if (response.error) {
-      setError(response.error.message);
-    } else {
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrlData.publicUrl;
+      }
+
+      const productData = {
+        ...product,
+        image: imageUrl,
+        price: Number(product.price),
+      };
+
+      let response;
+      if (isEditing) {
+        response = await supabase.from('products').update(productData).eq('id', id);
+      } else {
+        response = await supabase.from('products').insert(productData);
+      }
+
+      if (response.error) {
+        throw response.error;
+      }
+
       alert(`Product ${isEditing ? 'updated' : 'created'} successfully!`);
       navigate('/admin/products');
+    } catch (err: any) {
+      console.error('Failed to save product', err);
+      setError(err.message || 'Failed to save product');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,12 +125,15 @@ const ProductForm = () => {
         </div>
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-          <select name="category" id="category" value={product.category} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          <select name="category" id="category" value={product.category} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
             <option value="">Select a category</option>
             <option value="clothing">Clothing</option>
             <option value="accessories">Accessories</option>
             <option value="shoes">Shoes</option>
             <option value="bags">Bags</option>
+            <option value="men">Men Wears</option>
+            <option value="women">Women</option>
+            <option value="ethnic">Ethnic Wears</option>
           </select>
         </div>
         <div>
@@ -108,6 +143,16 @@ const ProductForm = () => {
         <div>
           <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image URL</label>
           <input type="text" name="image" id="image" value={product.image} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Or upload image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            className="mt-1 block w-full text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-500">If a file is selected, it will be uploaded and used instead of the URL.</p>
         </div>
         <div className="flex items-center">
           <input id="isVintage" name="isVintage" type="checkbox" checked={product.isVintage} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Share2, Truck, RotateCcw, Shield } from 'lucide-react';
-import { allProducts } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { fetchProductById } from '../lib/supabaseProducts';
+import { supabase } from '../lib/supabase';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,11 +11,39 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
 
-  const product = allProducts.find(p => p.id === id);
+  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<any | null>(null);
 
-  if (!product) {
-    return <Navigate to="/products" replace />;
-  }
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      if (!id) return;
+      setLoading(true);
+      const data = await fetchProductById(id);
+      if (mounted) setProduct(data);
+      setLoading(false);
+    };
+    load();
+
+    if (id) {
+      const channel = supabase
+        .channel(`product-detail-${id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: `id=eq.${id}` }, load)
+        .subscribe();
+      return () => {
+        mounted = false;
+        supabase.removeChannel(channel);
+      };
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  if (!id) return <Navigate to="/products" replace />;
+  if (loading) return <div className="pt-16 p-8">Loading product...</div>;
+  if (!product) return <Navigate to="/products" replace />;
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
