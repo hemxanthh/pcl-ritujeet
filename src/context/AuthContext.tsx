@@ -23,42 +23,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const fetchAndSetAdmin = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('is_admin')
+          .eq('id', userId)
+          .single();
+        if (error) {
+          console.error('Error fetching admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(Boolean(data?.is_admin));
+        }
+      } catch (e) {
+        console.error('Exception fetching admin status:', e);
+        setIsAdmin(false);
+      }
+    };
+
+    const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      const currentUser = session?.user;
-      setUser(currentUser ?? null);
-
-      if (currentUser) {
-        try {
-          console.log('Checking admin status for user:', currentUser.id);
-          const { data, error } = await supabase
-            .from('user_profiles')
-            .select('is_admin')
-            .eq('id', currentUser.id)
-            .single();
-
-          if (error) {
-            console.error('Error fetching admin status:', error);
-            setIsAdmin(false);
-          } else {
-            console.log('Admin check result:', { data });
-            setIsAdmin(data?.is_admin || false);
-          }
-        } catch (e) {
-          console.error('Exception fetching admin status:', e);
-          setIsAdmin(false);
-        }
-      }
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) await fetchAndSetAdmin(currentUser.id);
       setIsLoading(false);
     };
 
-    checkUser();
+    bootstrap();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
-      // Re-check admin status on auth change if needed, or rely on re-login
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        await fetchAndSetAdmin(nextUser.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => {
