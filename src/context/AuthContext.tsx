@@ -77,7 +77,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const bootstrap = async () => {
       try {
         console.log('AuthProvider: Starting bootstrap...');
-        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Add connection test for Supabase
+        const connectionTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase connection timeout')), 8000)
+        );
+        
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([sessionPromise, connectionTimeout]) as any;
+        
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
