@@ -5,6 +5,6 @@ export interface Product {
   image: string;
   category: string;
   description: string;
-  isVintage: boolean;
+  isVintage?: boolean;
   selectedSize?: string;
 }

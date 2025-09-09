@@ -37,7 +37,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold text-neutral-900 tracking-tight">
-            THRIFT STORE
+            TTHRIFT STORE
           </Link>
 
           {/* Desktop Navigation */}
@@ -226,6 +226,25 @@ const Header = () => {
               >
                 CONTACT
               </Link>
+              {isAdmin && (
+                <>
+                  <div className="h-px bg-neutral-200 my-2" />
+                  <Link
+                    to="/admin"
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link
+                    to="/admin/products/new"
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Add Product
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         )}

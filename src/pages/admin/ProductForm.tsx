@@ -12,7 +12,6 @@ const ProductForm = () => {
     description: '',
     category: '',
     image: '',
-    isVintage: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +56,12 @@ const ProductForm = () => {
     setError(null);
 
     try {
+      // Require at least one image source: URL or uploaded file
+      if (!imageFile && !product.image) {
+        setLoading(false);
+        setError('Please add an image or provide an image URL.');
+        return;
+      }
       let imageUrl = product.image || '';
 
       // If a local image file is selected, upload it to Supabase Storage
@@ -117,15 +122,15 @@ const ProductForm = () => {
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
-          <input type="text" name="name" id="name" value={product.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          <input type="text" name="name" id="name" value={product.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900" />
         </div>
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
-          <input type="number" name="price" id="price" value={product.price} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          <input type="number" name="price" id="price" value={product.price} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900" />
         </div>
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-          <select name="category" id="category" value={product.category} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          <select name="category" id="category" value={product.category} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900">
             <option value="">Select a category</option>
             <option value="clothing">Clothing</option>
             <option value="accessories">Accessories</option>
@@ -138,25 +143,21 @@ const ProductForm = () => {
         </div>
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea name="description" id="description" value={product.description} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+          <textarea name="description" id="description" value={product.description} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"></textarea>
         </div>
         <div>
-          <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image URL</label>
-          <input type="text" name="image" id="image" value={product.image} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image URL (optional)</label>
+          <input type="text" name="image" id="image" placeholder="https://..." value={product.image} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Or upload image</label>
+          <label className="block text-sm font-medium text-gray-700">Or upload an image</label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             className="mt-1 block w-full text-sm"
           />
-          <p className="mt-1 text-xs text-gray-500">If a file is selected, it will be uploaded and used instead of the URL.</p>
-        </div>
-        <div className="flex items-center">
-          <input id="isVintage" name="isVintage" type="checkbox" checked={product.isVintage} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-          <label htmlFor="isVintage" className="ml-2 block text-sm text-gray-900">Is Vintage</label>
+          <p className="mt-1 text-xs text-gray-500">Add either an image URL above or choose a file. If a file is selected, it will be uploaded and used instead of the URL.</p>
         </div>
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <div className="flex justify-end">
