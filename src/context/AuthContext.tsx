@@ -31,7 +31,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (currentUser) {
         try {
-          console.log('Checking admin status for user:', currentUser.id);
+          console.log('Checking admin status for user:', currentUser.id, 'email:', currentUser.email);
+          
+          // Email-based admin check (temporary fallback)
+          const adminEmails = [
+            'jupitervalorant15@gmail.com',
+            'hemxanthh@gmail.com', 
+            'admin@test.com'
+          ];
+          
+          if (adminEmails.includes(currentUser.email || '')) {
+            console.log('User is admin by email check:', currentUser.email);
+            setIsAdmin(true);
+            setIsLoading(false);
+            return;
+          }
+          
+          // Database admin check
           const { data, error } = await supabase
             .from('user_profiles')
             .select('is_admin')
