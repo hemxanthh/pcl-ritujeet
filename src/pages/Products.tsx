@@ -19,18 +19,35 @@ const Products = () => {
 
   useEffect(() => {
     let mounted = true;
+    let channel: any = null;
+    
     const load = async () => {
       try {
         setLoading(true);
+        console.log('Products: Loading products for category:', selectedCategory);
         const data =
           selectedCategory === 'all'
             ? await fetchProducts()
             : await fetchProductsByCategory(selectedCategory);
+        console.log('Products: Loaded products:', data.length);
         if (mounted) setProducts(data as any);
+      } catch (error) {
+        console.error('Products: Error loading products:', error);
+        if (mounted) setProducts([]);
       } finally {
         if (mounted) setLoading(false);
       }
     };
+    
+    // Add timeout to ensure loading state doesn't hang
+    const timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Products: Product loading timed out');
+        setLoading(false);
+        setProducts([]);
+      }
+    }, 10000); // Reduced timeout
+    
     load();
 
     // Keep URL in sync when selectedCategory changes
@@ -39,17 +56,32 @@ const Products = () => {
     else params.set('category', selectedCategory);
     setSearchParams(params, { replace: true });
 
-    // Realtime refresh
-    const channel = supabase
-      .channel('products-page')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, load)
-      .subscribe();
+    // Only set up realtime if we have products (indicating Supabase works)
+    const setupRealtime = async () => {
+      setTimeout(() => {
+        if (mounted && products.length > 0) {
+          console.log('Setting up products realtime subscription...');
+          channel = supabase
+            .channel('products-page')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, load)
+            .subscribe();
+        } else {
+          console.log('Skipping products realtime subscription - no products loaded');
+        }
+      }, 2000);
+    };
+    
+    setupRealtime();
 
     return () => {
       mounted = false;
-      supabase.removeChannel(channel);
+      clearTimeout(timeoutId);
+      if (channel) {
+        console.log('Cleaning up products realtime subscription');
+        supabase.removeChannel(channel);
+      }
     };
-  }, [selectedCategory]);
+  }, [selectedCategory]); // Keep selectedCategory dependency
 
   const filteredProducts = useMemo(() => products, [products]);
 

@@ -13,28 +13,62 @@ const Home = () => {
 
   useEffect(() => {
     let mounted = true;
+    let channel: any = null;
+    
     const load = async () => {
       try {
         setLoading(true);
+        console.log('Home: Loading products...');
         const all = await fetchProducts();
+        console.log('Home: Products loaded:', all.length);
         // Pick latest 8 as featured
         if (mounted) setFeatured(all.slice(0, 8) as any);
+      } catch (error) {
+        console.error('Home: Error loading products:', error);
+        if (mounted) setFeatured([]);
       } finally {
         if (mounted) setLoading(false);
       }
     };
+    
+    // Add timeout to ensure loading state doesn't hang
+    const timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Home: Product loading timed out');
+        setLoading(false);
+        setFeatured([]);
+      }
+    }, 10000); // Reduced timeout
+    
     load();
 
-    const channel = supabase
-      .channel('home-products')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, load)
-      .subscribe();
+    // Only set up realtime if we have products (indicating Supabase works)
+    const setupRealtime = async () => {
+      // Wait a bit to see if initial load succeeds
+      setTimeout(() => {
+        if (mounted && featured.length > 0) {
+          console.log('Setting up realtime subscription...');
+          channel = supabase
+            .channel('home-products')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, load)
+            .subscribe();
+        } else {
+          console.log('Skipping realtime subscription - no products loaded');
+        }
+      }, 2000);
+    };
+    
+    setupRealtime();
 
     return () => {
       mounted = false;
-      supabase.removeChannel(channel);
+      clearTimeout(timeoutId);
+      if (channel) {
+        console.log('Cleaning up realtime subscription');
+        supabase.removeChannel(channel);
+      }
     };
-  }, []);
+  }, []); // Remove featured dependency to prevent loops
 
   return (
     <div>
