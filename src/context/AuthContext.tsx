@@ -22,6 +22,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Detect mobile device for faster timeouts
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  useEffect(() => {
+    // Set shorter loading timeout for mobile devices
+    const mobileTimeout = setTimeout(() => {
+      if (isLoading && isMobile) {
+        console.log('Mobile: Auth loading timeout, finishing early');
+        setIsLoading(false);
+      }
+    }, 3000); // 3 seconds for mobile vs 10+ for desktop
+
+    return () => clearTimeout(mobileTimeout);
+  }, [isLoading, isMobile]);
+
   useEffect(() => {
     const fetchAndSetAdmin = async (userId: string) => {
       try {
@@ -42,11 +57,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Try to get user email with timeout protection
+        // Try to get user email with timeout protection (shorter for mobile)
         try {
           const userPromise = supabase.auth.getUser();
+          const mobileTimeout = isMobile ? 1000 : 2000; // 1s mobile, 2s desktop
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Auth timeout')), 2000)
+            setTimeout(() => reject(new Error('Auth timeout')), mobileTimeout)
           );
           
           const { data: { user: currentUser } } = await Promise.race([userPromise, timeoutPromise]) as any;
@@ -85,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .eq('id', userId)
             .single();
             
-          const timeoutDuration = window.location.hostname === 'localhost' ? 5000 : 15000;
+          const timeoutDuration = isMobile ? 2000 : (window.location.hostname === 'localhost' ? 5000 : 15000);
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database query timeout')), timeoutDuration)
           );
@@ -116,10 +132,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let session = null;
         let currentUser = null;
         
+        // Mobile optimization: Check localStorage first for faster loading
+        if (isMobile) {
+          try {
+            console.log('Mobile: Checking localStorage first for faster loading...');
+            const storedSession = localStorage.getItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+            if (storedSession) {
+              const parsed = JSON.parse(storedSession);
+              if (parsed?.user && parsed?.access_token) {
+                console.log('Mobile: Found stored session, using immediately');
+                currentUser = parsed.user;
+                session = {
+                  user: parsed.user,
+                  access_token: parsed.access_token,
+                  refresh_token: parsed.refresh_token,
+                  expires_at: parsed.expires_at,
+                  expires_in: parsed.expires_in,
+                  token_type: parsed.token_type
+                };
+                
+                // Set user immediately for mobile
+                setSession(session);
+                setUser(currentUser);
+                
+                // Quick admin check for mobile
+                const adminEmails = ['jupitervalorant15@gmail.com', 'hemxanthh@gmail.com', 'admin@test.com'];
+                if (currentUser && adminEmails.includes(currentUser.email || '')) {
+                  console.log('Mobile: Quick admin check passed:', currentUser.email);
+                  setIsAdmin(true);
+                }
+                
+                setIsLoading(false);
+                return; // Skip online check for mobile if localStorage works
+              }
+            }
+          } catch (storageError) {
+            console.warn('Mobile: localStorage check failed, falling back to online:', storageError);
+          }
+        }
+        
         try {
-          // Try to get session with short timeout
+          // Try to get session with mobile-optimized timeout
+          const mobileConnectionTimeout = isMobile ? 1500 : 3000; // 1.5s mobile, 3s desktop
           const connectionTimeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Supabase connection timeout')), 3000)
+            setTimeout(() => reject(new Error('Supabase connection timeout')), mobileConnectionTimeout)
           );
           
           const sessionPromise = supabase.auth.getSession();
@@ -161,8 +217,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (currentUser) {
           console.log('AuthProvider: User found, checking admin status...');
           try {
-            // Add timeout to prevent hanging - longer for production
-            const adminTimeout = window.location.hostname === 'localhost' ? 8000 : 20000;
+            // Add timeout to prevent hanging - mobile-optimized
+            const adminTimeout = isMobile ? 3000 : (window.location.hostname === 'localhost' ? 8000 : 20000);
             await Promise.race([
               fetchAndSetAdmin(currentUser.id),
               new Promise((_, reject) => 
