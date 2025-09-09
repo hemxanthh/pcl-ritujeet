@@ -41,12 +41,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Database admin check
-        const { data, error } = await supabase
+        // Database admin check with timeout
+        const dbCheckPromise = supabase
           .from('user_profiles')
           .select('is_admin')
           .eq('id', userId)
           .single();
+          
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 3000)
+        );
+        
+        const { data, error } = await Promise.race([dbCheckPromise, timeoutPromise]) as any;
+        
         if (error) {
           console.error('Error fetching admin status:', error);
           setIsAdmin(false);
@@ -61,15 +68,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const bootstrap = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) await fetchAndSetAdmin(currentUser.id);
-      setIsLoading(false);
+      try {
+        console.log('AuthProvider: Starting bootstrap...');
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          console.log('AuthProvider: User found, checking admin status...');
+          try {
+            // Add timeout to prevent hanging
+            await Promise.race([
+              fetchAndSetAdmin(currentUser.id),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Admin check timeout')), 5000)
+              )
+            ]);
+          } catch (adminError) {
+            console.error('AuthProvider: Admin check failed:', adminError);
+            setIsAdmin(false);
+          }
+        } else {
+          console.log('AuthProvider: No user found');
+          setIsAdmin(false);
+        }
+        
+        console.log('AuthProvider: Bootstrap completed');
+        setIsLoading(false);
+      } catch (error) {
+        console.error('AuthProvider: Bootstrap failed:', error);
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsLoading(false);
+      }
     };
 
-    bootstrap();
+    // Add safety timeout for entire bootstrap process
+    const initializeAuth = async () => {
+      try {
+        await Promise.race([
+          bootstrap(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+          )
+        ]);
+      } catch (error) {
+        console.error('AuthProvider: Initialization failed or timed out:', error);
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
