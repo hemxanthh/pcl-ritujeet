@@ -27,18 +27,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         console.log('Checking admin status for user:', userId);
         
-        // Email-based admin check (primary method)
-        const currentUser = (await supabase.auth.getUser()).data.user;
+        // Offline admin emails - works even without Supabase
         const adminEmails = [
           'jupitervalorant15@gmail.com',
           'hemxanthh@gmail.com',
           'admin@test.com'
         ];
         
-        if (currentUser && adminEmails.includes(currentUser.email || '')) {
-          console.log('User is admin by email check:', currentUser.email);
+        // Check for temporary admin override (for testing)
+        const adminOverride = localStorage.getItem('temp-admin-mode');
+        if (adminOverride === 'true') {
+          console.log('User is admin via temporary override');
           setIsAdmin(true);
-          return; // Skip database check if email-based admin
+          return;
+        }
+        
+        // Try to get user email with timeout protection
+        try {
+          const userPromise = supabase.auth.getUser();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Auth timeout')), 2000)
+          );
+          
+          const { data: { user: currentUser } } = await Promise.race([userPromise, timeoutPromise]) as any;
+          
+          if (currentUser && adminEmails.includes(currentUser.email || '')) {
+            console.log('User is admin by email check (online):', currentUser.email);
+            setIsAdmin(true);
+            return; // Skip database check if email-based admin
+          }
+        } catch (authError) {
+          console.warn('Supabase auth unavailable, checking localStorage:', authError);
+          
+          // Fallback: Check localStorage for logged in user email
+          const storedSession = localStorage.getItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+          if (storedSession) {
+            try {
+              const session = JSON.parse(storedSession);
+              const userEmail = session?.user?.email;
+              if (userEmail && adminEmails.includes(userEmail)) {
+                console.log('User is admin by localStorage check (offline):', userEmail);
+                setIsAdmin(true);
+                return;
+              }
+            } catch (parseError) {
+              console.warn('Could not parse stored session:', parseError);
+            }
+          }
         }
         
         // Only check database for non-admin emails (optional secondary check)
@@ -78,16 +113,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         console.log('AuthProvider: Starting bootstrap...');
         
-        // Add connection test for Supabase
-        const connectionTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Supabase connection timeout')), 8000)
-        );
+        let session = null;
+        let currentUser = null;
         
-        const sessionPromise = supabase.auth.getSession();
-        const { data: { session } } = await Promise.race([sessionPromise, connectionTimeout]) as any;
+        try {
+          // Try to get session with short timeout
+          const connectionTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Supabase connection timeout')), 3000)
+          );
+          
+          const sessionPromise = supabase.auth.getSession();
+          const result = await Promise.race([sessionPromise, connectionTimeout]) as any;
+          session = result.data?.session;
+          currentUser = session?.user ?? null;
+          
+          console.log('AuthProvider: Online session retrieved');
+        } catch (sessionError) {
+          console.warn('AuthProvider: Cannot get session from Supabase, checking localStorage:', sessionError);
+          
+          // Fallback: Try to get user from localStorage
+          try {
+            const storedSession = localStorage.getItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+            if (storedSession) {
+              const parsed = JSON.parse(storedSession);
+              if (parsed?.user && parsed?.access_token) {
+                console.log('AuthProvider: Found stored session, creating offline user');
+                currentUser = parsed.user;
+                // Create a mock session for offline use
+                session = {
+                  user: parsed.user,
+                  access_token: parsed.access_token,
+                  refresh_token: parsed.refresh_token,
+                  expires_at: parsed.expires_at,
+                  expires_in: parsed.expires_in,
+                  token_type: parsed.token_type
+                };
+              }
+            }
+          } catch (storageError) {
+            console.warn('AuthProvider: Could not parse stored session:', storageError);
+          }
+        }
         
         setSession(session);
-        const currentUser = session?.user ?? null;
         setUser(currentUser);
         
         if (currentUser) {
